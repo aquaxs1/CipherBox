@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CipherBox — Sichere Dateiverschlüsselung</title>
+<meta name="description" content="CipherBox verschlüsselt deine lokalen Dateien mit Fernet (AES) und PBKDF2 — ein Master-Passwort, kein Cloud-Zwang.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="brand" href="#top">🔐 CipherBox</a>
+    <div class="nav-links">
+      <a href="#install">Install</a>
+      <a href="#usage">Benutzung</a>
+      <a href="#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox---File-Encrypter">GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <h1>Deine Dateien.<br>Nur für dich lesbar.</h1>
+    <p class="lead">CipherBox ist eine Desktop-App, die lokale Dateien mit AES (Fernet) und PBKDF2-HMAC-SHA256 verschlüsselt. Ein Master-Passwort, keine Cloud, kein Konto.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#install">Installieren</a>
+      <a class="btn btn-ghost" href="https://github.com/aquaxs1/CipherBox---File-Encrypter">Quellcode</a>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p>Benötigt Python 3.10 oder neuer (Windows, macOS, Linux).</p>
+<pre><code>git clone https://github.com/aquaxs1/CipherBox---File-Encrypter.git
+cd CipherBox---File-Encrypter
+pip install -r requirements.txt</code></pre>
+    <p class="muted">Installiert <code>customtkinter</code> und <code>cryptography</code>.</p>
+  </section>
+
+  <section id="usage">
+    <h2>Wie man es benutzt</h2>
+<pre><code>python main.py</code></pre>
+    <ol class="steps">
+      <li><strong>Erster Start:</strong> CipherBox generiert ein 32-Zeichen Master-Passwort. Sicher abspeichern — ohne dieses Passwort gibt es keine Wiederherstellung.</li>
+      <li><strong>Verschlüsseln:</strong> Tab „Encrypt Files“ → Dateien hinzufügen → optional Dateinamen verschlüsseln → starten. Originale werden sicher überschrieben und gelöscht, übrig bleiben <code>.cipherbox</code>-Dateien.</li>
+      <li><strong>Entschlüsseln:</strong> Tab „Decrypt Files“ → <code>.cipherbox</code>-Dateien wählen → Master-Passwort eingeben. Originalnamen und -inhalte werden wiederhergestellt.</li>
+    </ol>
+    <p class="muted">Für Skripte lassen sich <code>crypto_utils.CryptoManager</code> und <code>config_manager.ConfigManager</code> auch direkt importieren.</p>
+  </section>
+
+  <section id="features">
+    <h2>Was es kann</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Starke Verschlüsselung</h3>
+        <p>Fernet (AES-128-CBC + HMAC-SHA256) mit authentifizierter Integritätsprüfung.</p>
+      </div>
+      <div class="card">
+        <h3>Robuste Key-Ableitung</h3>
+        <p>PBKDF2-HMAC-SHA256 mit 480.000 Iterationen und 32-Byte-Salt (OWASP 2024).</p>
+      </div>
+      <div class="card">
+        <h3>Dateinamen verstecken</h3>
+        <p>Optional werden Dateinamen durch zufällige UUIDs ersetzt und im Container gespeichert.</p>
+      </div>
+      <div class="card">
+        <h3>Sicheres Löschen</h3>
+        <p>Originale werden vor dem Entfernen 3× überschrieben und mit Nullen gefüllt.</p>
+      </div>
+      <div class="card">
+        <h3>Kein Passwort-Speicher</h3>
+        <p>Nur der Salt landet in <code>~/.cipherbox/config.json</code> (Rechte 0600) — nie das Passwort.</p>
+      </div>
+      <div class="card">
+        <h3>Stapelverarbeitung</h3>
+        <p>Mehrere Dateien auf einmal, moderne GUI, funktioniert auch mit Multi-GB-Dateien.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#install">Install</a>
+      <a href="#usage">Benutzung</a>
+      <a href="#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox---File-Encrypter">GitHub</a>
+      <a href="https://github.com/aquaxs1/CipherBox---File-Encrypter/blob/main/LISENCE">Lizenz (MIT)</a>
+      <a href="#terms">Terms of Use</a>
+    </div>
+    <p id="terms" class="fineprint">
+      <strong>Terms of Use:</strong> CipherBox wird „wie besehen“ und ohne jede Gewährleistung bereitgestellt.
+      Die Nutzung erfolgt auf eigenes Risiko — bei Verlust des Master-Passworts sind verschlüsselte Dateien unwiderruflich verloren.
+      Es wird keine Haftung für Datenverlust oder Schäden übernommen. Details in der MIT-Lizenz.
+    </p>
+    <p class="fineprint">© 2026 AquaXS. Alle Rechte vorbehalten. Veröffentlicht unter der MIT-Lizenz.</p>
+  </div>
+</footer>
+
+</body>
+</html>
