@@ -1,0 +1,153 @@
+name: Build & release binaries
+
+# Builds a double-click desktop executable for Windows, macOS (Apple Silicon)
+# and Linux, then publishes them to a GitHub Release.
+#
+# Each binary is a PyInstaller onefile build of main.py -- the same
+# customtkinter GUI you get from `python main.py`, with no Python install
+# required on the target machine.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+            asset_ext: zip
+            binary: cipherbox.exe
+          - os: macos-14
+            name: macos-arm64
+            asset_ext: zip
+            binary: cipherbox
+          - os: ubuntu-latest
+            name: linux-x64
+            asset_ext: tar.gz
+            binary: cipherbox
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # customtkinter is a tkinter wrapper, and the Ubuntu runner's Python
+      # ships without the Tk bindings. Without this the build succeeds and
+      # the binary dies on import.
+      - name: Install Tk (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build
+        run: pyinstaller packaging/cipherbox.spec --noconfirm --clean
+
+      - name: Package (zip)
+        if: matrix.asset_ext == 'zip'
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a "../cipherbox-${{ matrix.name }}.zip" "${{ matrix.binary }}"
+          else
+            zip "../cipherbox-${{ matrix.name }}.zip" "${{ matrix.binary }}"
+          fi
+
+      - name: Package (tar.gz)
+        if: matrix.asset_ext == 'tar.gz'
+        shell: bash
+        run: |
+          chmod +x "dist/${{ matrix.binary }}"
+          tar -C dist -czf "cipherbox-${{ matrix.name }}.tar.gz" "${{ matrix.binary }}"
+
+      - name: Checksum
+        shell: bash
+        run: |
+          FILE="cipherbox-${{ matrix.name }}.${{ matrix.asset_ext }}"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            certutil -hashfile "$FILE" SHA256 | sed -n '2p' | tr -d '\r' | awk -v f="$FILE" '{print $0"  "f}' > "$FILE.sha256"
+          else
+            shasum -a 256 "$FILE" > "$FILE.sha256"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cipherbox-${{ matrix.name }}
+          path: |
+            cipherbox-${{ matrix.name }}.${{ matrix.asset_ext }}
+            cipherbox-${{ matrix.name }}.${{ matrix.asset_ext }}.sha256
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve tag
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Combine checksums
+        run: cat artifacts/*.sha256 > artifacts/SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: CipherBox ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            artifacts/*.zip
+            artifacts/*.tar.gz
+            artifacts/SHA256SUMS.txt
+          body: |
+            Desktop builds of CipherBox ${{ steps.version.outputs.version }}.
+            No Python installation required — unpack and run.
+
+            These binaries are **not code-signed**, so Windows SmartScreen and
+            macOS Gatekeeper will warn on first launch. On Windows choose
+            *More info → Run anyway*; on macOS right-click the app → *Open*.
+            Installing from source with `pip` skips the warning entirely.
+
+            **Your master password cannot be recovered.** Write it down before
+            you encrypt anything you care about.
+
+            Verify a download against `SHA256SUMS.txt`:
+
+            ```
+            sha256sum -c SHA256SUMS.txt
+            ```
