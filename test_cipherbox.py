@@ -110,9 +110,82 @@ def test_config_manager():
     print("✓ PASSED")
 
 
+def test_stale_config_cleanup():
+    """Test that residue from old tests or builds does not break a fresh install."""
+    print_section("TEST 5: Stale Config Cleanup")
+    
+    # A config file left behind by an interrupted setup, an old test run or a
+    # previous build holds no usable salt. It must not masquerade as an
+    # existing install -- that is the dead end where no password works.
+    residue_cases = {
+        "empty file": "",
+        "truncated JSON": '{"version": 1, "sal',
+        "no salt key": '{"version": 1}',
+        "null salt": '{"version": 1, "salt": null}',
+        "malformed base64": '{"version": 1, "salt": "not!valid!base64!"}',
+        "salt too short": '{"version": 1, "salt": "YWJj"}',
+        "JSON but not an object": '["old", "test", "fixture"]',
+    }
+    
+    for label, contents in residue_cases.items():
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = ConfigManager(tmpdir)
+            config.config_file.write_text(contents)
+            
+            assert config.load_salt() is None, f"{label}: should yield no salt"
+            assert not config.has_valid_config(), f"{label}: should not count as valid"
+            assert config.is_first_launch(), f"{label}: should be treated as first launch"
+            
+            assert config.clear_stale_config(), f"{label}: should be cleared"
+            assert not config.config_file.exists(), f"{label}: file should be gone"
+            print(f"✓ Residue cleared: {label}")
+    
+    # A config holding a real salt is never removed -- deleting it would make
+    # already encrypted files permanently unreadable.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config = ConfigManager(tmpdir)
+        salt = CryptoManager.generate_salt()
+        config.save_salt(salt)
+        
+        assert not config.clear_stale_config(), "Valid config must not be cleared"
+        assert config.config_file.exists(), "Valid config file must survive"
+        assert config.load_salt() == salt, "Valid salt must be untouched"
+        print("✓ Valid config is preserved")
+    
+    # Setup over residue produces a working install.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config = ConfigManager(tmpdir)
+        config.config_file.write_text('{"version": 1, "salt": "junk"}')
+        config.clear_stale_config()
+        
+        salt = CryptoManager.generate_salt()
+        assert config.save_salt(salt), "Should save after clearing residue"
+        assert config.load_salt() == salt, "Fresh salt should load back"
+        assert not config.is_first_launch(), "Should be set up now"
+        print("✓ Fresh setup works after residue cleanup")
+    
+    # An invalid salt is rejected rather than written out as new residue.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config = ConfigManager(tmpdir)
+        assert not config.save_salt(b"short"), "Should refuse a too-short salt"
+        assert config.is_first_launch(), "Refused save must not create an install"
+        print("✓ Invalid salt is refused")
+    
+    # No temp files are left behind by config writes.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config = ConfigManager(tmpdir)
+        config.save_salt(CryptoManager.generate_salt())
+        config.save_salt(CryptoManager.generate_salt())
+        
+        leftovers = [p.name for p in Path(tmpdir).iterdir() if p.name != "config.json"]
+        assert not leftovers, f"Config writes left residue behind: {leftovers}"
+        print("✓ Config writes leave no temp files behind")
+    
+    print("✓ PASSED")
+
 def test_file_encryption_decryption():
     """Test file encryption and decryption."""
-    print_section("TEST 5: File Encryption & Decryption")
+    print_section("TEST 6: File Encryption & Decryption")
     
     crypto = CryptoManager()
     password = "MySecurePassword123"
@@ -162,7 +235,7 @@ def test_file_encryption_decryption():
 
 def test_filename_encryption():
     """Test filename encryption feature."""
-    print_section("TEST 6: Filename Encryption")
+    print_section("TEST 7: Filename Encryption")
     
     crypto = CryptoManager()
     password = "MySecurePassword123"
@@ -206,7 +279,7 @@ def test_filename_encryption():
 
 def test_wrong_password():
     """Test decryption with wrong password."""
-    print_section("TEST 7: Wrong Password Handling")
+    print_section("TEST 8: Wrong Password Handling")
     
     crypto = CryptoManager()
     password = "CorrectPassword"
@@ -239,7 +312,7 @@ def test_wrong_password():
 
 def test_large_file():
     """Test encryption/decryption of a larger file."""
-    print_section("TEST 8: Large File Handling (10 MB)")
+    print_section("TEST 9: Large File Handling (10 MB)")
     
     crypto = CryptoManager()
     password = "LargeFilePassword"
@@ -289,6 +362,7 @@ def main():
         test_salt_generation()
         test_key_derivation()
         test_config_manager()
+        test_stale_config_cleanup()
         test_file_encryption_decryption()
         test_filename_encryption()
         test_wrong_password()

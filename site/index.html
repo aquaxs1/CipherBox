@@ -26,7 +26,7 @@
       <span>Cipher<span class="brand-accent">box</span></span>
     </a>
     <div class="nav-links">
-      <a href="#install">Install</a>
+      <a href="#install">Download</a>
       <a href="#usage">Usage</a>
       <a href="#features">Features</a>
       <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
@@ -41,9 +41,10 @@
       <h1>Your files.<br>Readable only by you.</h1>
       <p class="lead">CipherBox is a desktop app that encrypts local files with AES (Fernet) and PBKDF2-HMAC-SHA256. One master password — no cloud, no account.</p>
       <div class="hero-actions">
-        <a class="btn" href="#install">Install</a>
-        <a class="btn btn-ghost" href="https://github.com/aquaxs1/CipherBox">Source code</a>
+        <a class="btn" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe">Download for Windows</a>
+        <a class="btn btn-ghost" href="#install">Other platforms</a>
       </div>
+      <p class="hero-note">Free · No installer · No Python required</p>
     </div>
     <div class="hero-art">
       <img src="Cipherbox-logo.jpg" alt="CipherBox — a locked box holding documents">
@@ -51,23 +52,48 @@
   </section>
 
   <section id="install">
-    <h2>Install</h2>
-    <p>Download and run — no Python needed. Windows, macOS and Linux.</p>
-    <div class="hero-actions">
-      <a class="btn" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-windows-x64.zip">Windows</a>
-      <a class="btn" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-macos-arm64.zip">macOS</a>
-      <a class="btn" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-linux-x64.tar.gz">Linux</a>
+    <h2>Download</h2>
+
+    <div class="download">
+      <div class="download-main">
+        <p class="download-kicker">Windows</p>
+        <h3>CipherBox.exe</h3>
+        <p class="download-sub">The whole app in one file. Download it, double-click it, done —
+          nothing to install, no Python, no unzipping.</p>
+        <a class="btn btn-lg" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe">Download CipherBox.exe</a>
+        <p class="download-meta">≈17&nbsp;MB · Windows 10 &amp; 11 (64-bit) ·
+          <a href="https://github.com/aquaxs1/CipherBox/releases/latest">All downloads and checksums</a></p>
+      </div>
+      <div class="download-side">
+        <p class="download-kicker">First launch</p>
+        <p>Windows does not know this file yet, so SmartScreen shows a blue
+          warning. Choose <strong>More info → Run anyway</strong>. It appears because
+          the build is not code-signed, not because anything is wrong with it.</p>
+        <p class="download-verify">Paranoid? Check the file against the published hash first:</p>
+<pre><code>certutil -hashfile CipherBox.exe SHA256</code></pre>
+      </div>
     </div>
-    <p class="muted">Unsigned, so Windows and macOS warn on first launch. Running from
-      source skips that — needs Python 3.10+, <code>customtkinter</code> and <code>cryptography</code>:</p>
+
+    <details class="alt-install">
+      <summary>macOS, Linux, or running from source</summary>
+      <div class="alt-install-body">
+        <p>Prebuilt macOS and Linux binaries ship with tagged releases when they are
+          available — check the
+          <a href="https://github.com/aquaxs1/CipherBox/releases/latest">latest release</a>.
+          Otherwise run it from source on any platform. Needs Python 3.10+:</p>
 <pre><code>git clone https://github.com/aquaxs1/CipherBox.git
 cd CipherBox
-pip install -r requirements.txt</code></pre>
+pip install -r requirements.txt
+python main.py</code></pre>
+        <p class="muted">This pulls in <code>customtkinter</code> and <code>cryptography</code>,
+          and skips the unsigned-binary warning entirely.</p>
+      </div>
+    </details>
   </section>
 
   <section id="usage">
     <h2>How to use it</h2>
-<pre><code>python main.py</code></pre>
+    <p>Double-click <code>CipherBox.exe</code>. From source it is <code>python main.py</code>.</p>
     <ol class="steps">
       <li><strong>First launch:</strong> CipherBox generates a 32-character master password. Store it somewhere safe — without it there is no recovery.</li>
       <li><strong>Encrypt:</strong> Open the “Encrypt Files” tab, add your files, optionally encrypt filenames, and run it. Originals are securely overwritten and deleted, leaving <code>.cipherbox</code> files behind.</li>
@@ -111,7 +137,7 @@ pip install -r requirements.txt</code></pre>
 <footer>
   <div class="footer-inner">
     <div class="footer-links">
-      <a href="#install">Install</a>
+      <a href="#install">Download</a>
       <a href="#usage">Usage</a>
       <a href="#features">Features</a>
       <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>

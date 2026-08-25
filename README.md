@@ -17,31 +17,48 @@
 
 ## Installation
 
-### Requirements
+### Windows: download the executable (recommended)
 
-- **Python 3.10 or higher**
-- **Windows, macOS, or Linux**
+Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
+and double-click it. The whole app is in that one file — no Python, no installer,
+nothing to unzip.
 
-### Step 1: Install Python
+The build is not code-signed, so SmartScreen warns on first launch. Choose
+**More info → Run anyway**.
 
-Download Python from [python.org](https://www.python.org/downloads/) (3.10+)
+All builds and their SHA-256 checksums are on the
+[releases page](https://github.com/aquaxs1/CipherBox/releases/latest). To verify a
+download:
 
-Verify installation:
-```bash
-python --version
+```powershell
+certutil -hashfile CipherBox.exe SHA256
 ```
 
-### Step 2: Install Dependencies
+### Run from source (any platform)
 
-Navigate to the CipherBox directory and install required packages:
+Requires **Python 3.10+** on Windows, macOS or Linux:
 
 ```bash
+git clone https://github.com/aquaxs1/CipherBox.git
+cd CipherBox
 pip install -r requirements.txt
+python main.py
 ```
 
 This installs:
 - **customtkinter** (v5.2.0): Modern GUI framework
 - **cryptography** (v41.0.7): Strong cryptographic primitives
+
+### Build the executable yourself
+
+```bash
+pip install pyinstaller
+pyinstaller packaging/cipherbox.spec --noconfirm --clean
+```
+
+`--clean` discards PyInstaller's cache, and the spec keeps test files out of the
+bundle. The binary lands in `dist/`. Delete `build/` and `dist/` before a release
+build so nothing from an earlier build survives into it.
 
 ---
 
@@ -72,6 +89,8 @@ When you launch CipherBox for the first time:
 ## Usage
 
 ### Launching the Application
+
+Double-click `CipherBox.exe`, or from source:
 
 ```bash
 python main.py
@@ -135,6 +154,11 @@ Each `.cipherbox` file contains:
 - **Location**: `~/.cipherbox/config.json` (user's home directory)
 - **Contents**: Salt for key derivation (never the password)
 - **Permissions**: `0o600` (read/write by owner only)
+- **Writes**: atomic — an interrupted write leaves the previous config intact
+  rather than a half-written one
+- **Validation**: a config carrying no usable salt is treated as no install at
+  all and cleared, so residue from an old test run or build cannot lock you out
+  of a fresh install
 
 ---
 
@@ -158,6 +182,9 @@ CipherBox/
 ├── main.py              # GUI application & orchestration
 ├── crypto_utils.py      # Encryption/decryption logic
 ├── config_manager.py    # Configuration & salt management
+├── test_cipherbox.py    # Test suite
+├── packaging/           # PyInstaller build spec
+├── site/                # Documentation website
 ├── requirements.txt     # Python dependencies
 └── README.md           # This file
 ```
@@ -193,6 +220,18 @@ CipherBox/
 ```bash
 pip install --upgrade -r requirements.txt
 ```
+
+### "Configuration Reset" on startup
+
+**Problem**: `~/.cipherbox/config.json` exists but holds no usable salt — residue
+from an interrupted setup, an old test run or a previous build.
+
+**Solution**: Nothing to do. CipherBox detects this, removes the unusable file and
+runs first-time setup again with a new master password. A config holding a real
+salt is never removed automatically.
+
+Note that reinstalling does **not** clear this state: the config lives in your home
+directory, not in the install.
 
 ### Forgot Master Password
 

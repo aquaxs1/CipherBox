@@ -285,12 +285,134 @@ footer {
 
 .fineprint strong { color: #d3d9e8; }
 
+/* ------------------------------------------------------------- Download */
+.hero-note {
+  margin: 14px 0 0;
+  font-size: .85rem;
+  color: var(--ink-soft);
+}
+
+.btn-lg {
+  padding: 15px 30px;
+  font-size: 1.05rem;
+  border-radius: 12px;
+}
+
+.download {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 22px;
+  align-items: stretch;
+  margin-top: 22px;
+}
+
+.download-main,
+.download-side {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px;
+  /* Grid items default to min-width:auto, which lets the code block inside
+     push the whole page wider than the viewport on narrow screens. */
+  min-width: 0;
+}
+
+.download-main {
+  border-top: 3px solid var(--accent);
+}
+
+.download-kicker {
+  margin: 0 0 6px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.download-main h3 {
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.download-sub {
+  margin: 0 0 22px;
+  color: var(--ink-soft);
+  max-width: 44ch;
+}
+
+.download-meta {
+  margin: 16px 0 0;
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+
+.download-side p {
+  margin: 0 0 12px;
+  font-size: .9rem;
+  color: var(--ink-soft);
+}
+
+.download-side strong { color: var(--ink); }
+
+.download-verify { margin-top: 18px; }
+
+.download-side pre {
+  margin: 0;
+  font-size: .78rem;
+  padding: 12px 14px;
+}
+
+.alt-install {
+  margin-top: 26px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.alt-install summary {
+  cursor: pointer;
+  padding: 14px 20px;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+}
+
+.alt-install summary::-webkit-details-marker { display: none; }
+
+.alt-install summary::before {
+  content: "＋";
+  margin-right: 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.alt-install[open] summary::before { content: "－"; }
+
+.alt-install summary:hover { color: var(--accent-dark); }
+
+.alt-install-body {
+  padding: 0 20px 18px;
+  border-top: 1px solid var(--line);
+  font-size: .92rem;
+}
+
+.alt-install-body p:first-child { margin-top: 16px; }
+
 @media (max-width: 720px) {
   .hero {
     grid-template-columns: 1fr;
     padding-top: 44px;
   }
   .hero-art { order: -1; max-width: 320px; }
+  .download { grid-template-columns: 1fr; }
+  .btn-lg {
+    display: block;
+    text-align: center;
+    padding: 15px 20px;
+  }
 }
 
 /* ------------------------------------------------------------- Legal page */

@@ -34,10 +34,15 @@ class CipherBoxApp(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         
-        # First launch check
+        # First launch check. A config left behind by an interrupted setup, an
+        # old test run or a previous build holds no usable salt -- it unlocks
+        # nothing, so clear it and set up cleanly instead of prompting for a
+        # password that cannot exist.
         if self.config.is_first_launch():
+            self.stale_config_cleared = self.config.clear_stale_config()
             self.show_first_launch_wizard()
         else:
+            self.stale_config_cleared = False
             self.show_password_prompt()
     
     def show_first_launch_wizard(self) -> None:
@@ -57,6 +62,19 @@ class CipherBoxApp(ctk.CTk):
             font=("Helvetica", 28, "bold")
         )
         title_label.pack(pady=(0, 20))
+        
+        # Tell the user when residue from an earlier install was cleaned up, so
+        # a surprise "new password" screen has a visible reason.
+        if getattr(self, "stale_config_cleared", False):
+            cleanup_label = ctk.CTkLabel(
+                main_frame,
+                text="Removed an unusable configuration left over from an earlier "
+                     "install or test run. Starting fresh.",
+                font=("Helvetica", 12),
+                text_color="#F0A030",
+                justify="center"
+            )
+            cleanup_label.pack(pady=(0, 15))
         
         # Warning frame (styled prominently)
         warning_frame = ctk.CTkFrame(main_frame, fg_color="#8B0000", corner_radius=10)
@@ -245,7 +263,21 @@ class CipherBoxApp(ctk.CTk):
             # Load salt and derive key
             salt = self.config.load_salt()
             if salt is None:
-                status_label.configure(text="Configuration error. Please reinstall.", text_color="#FF6B6B")
+                # The config is unreadable, so no password can unlock it.
+                # Reinstalling does not help -- the residue lives in the config
+                # directory, not in the install -- so clear it and run setup.
+                self.config.clear_stale_config()
+                messagebox.showwarning(
+                    "Configuration Reset",
+                    "Your CipherBox configuration is damaged or left over from an "
+                    "earlier install, so it cannot unlock anything.\n\n"
+                    "It has been removed and setup will start again with a new "
+                    "master password.\n\n"
+                    "Files encrypted with an earlier master password cannot be "
+                    "recovered without that password."
+                )
+                self.stale_config_cleared = True
+                self.show_first_launch_wizard()
                 return
             
             self.master_password = password
