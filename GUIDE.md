@@ -1,4 +1,8 @@
-# CipherBox - Complete Developer & User Guide
+# CipherBox - Developer Guide
+
+> **For developers.** Architecture, module responsibilities, build and deployment.
+> If you just want to use CipherBox, read [QUICKSTART.md](QUICKSTART.md) or
+> [README.md](README.md) instead.
 
 ## 📋 Table of Contents
 
@@ -22,7 +26,7 @@
 ✓ **Auto-generated Master Password** (32 alphanumeric characters)  
 ✓ **PBKDF2-HMAC-SHA256 Key Derivation** (480,000 iterations)  
 ✓ **Fernet AES Encryption** with authentication  
-✓ **Secure File Deletion** (3-pass overwrite + zero fill)  
+✓ **Secure File Deletion** (3-pass overwrite + zero fill, flushed to disk)  
 ✓ **Optional Filename Encryption** (UUID + .cipherbox)  
 ✓ **Modern customtkinter GUI** (dark mode)  
 ✓ **Multi-file Support** (batch operations)  
@@ -43,16 +47,21 @@
 
 ```
 CipherBox/
-├── main.py              # GUI & application orchestration (23 KB)
-├── crypto_utils.py      # Cryptographic operations (10 KB)
-├── config_manager.py    # Configuration & salt management (3 KB)
-├── test_cipherbox.py    # Comprehensive test suite (11 KB)
-├── requirements.txt     # Python dependencies
-├── install.bat          # Windows installer
-├── install.sh           # macOS/Linux installer
-├── README.md            # Full documentation (9 KB)
-├── QUICKSTART.md        # Quick start guide (11 KB)
-└── GUIDE.md             # This file
+├── main.py                    # GUI & application orchestration
+├── crypto_utils.py            # Cryptographic operations
+├── config_manager.py          # Configuration & salt management
+├── test_cipherbox.py          # Test suite
+├── requirements.txt           # Python dependencies
+├── packaging/
+│   └── cipherbox.spec         # PyInstaller build spec
+├── site/                      # Documentation website
+├── .github/workflows/
+│   ├── tests.yml              # Test suite on every push and PR
+│   └── release.yml            # Builds and publishes desktop binaries
+├── LICENSE                    # MIT
+├── README.md                  # Full documentation
+├── QUICKSTART.md              # Quick start guide
+└── GUIDE.md                   # This file
 ```
 
 ### Module Responsibilities
@@ -119,31 +128,38 @@ CipherBox/
 
 ## Installation
 
-### Prerequisites
+### End users
+
+Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
+and run it. No Python required. See QUICKSTART.md for the details.
+
+### Development setup
+
+#### Prerequisites
 
 - **Python 3.10+**: Download from [python.org](https://www.python.org/downloads/)
-- **Admin/User access**: For file operations
+- **Tk bindings**: bundled with Python on Windows and macOS; on Debian/Ubuntu
+  install `python3-tk` separately, or customtkinter fails at import
 - **~500 MB disk space**: For Python + dependencies
 
-### Quick Install
-
-#### Windows
+#### From source
 ```bash
-install.bat
-```
-
-#### macOS/Linux
-```bash
-chmod +x install.sh
-./install.sh
-```
-
-#### Manual
-```bash
+git clone https://github.com/aquaxs1/CipherBox.git
+cd CipherBox
 pip install -r requirements.txt
 python test_cipherbox.py    # Verify installation
 python main.py              # Launch application
 ```
+
+#### Building a binary
+```bash
+pip install pyinstaller
+pyinstaller packaging/cipherbox.spec --noconfirm --clean
+```
+
+Delete `build/` and `dist/` first so nothing from an earlier build survives
+into the new one; `--clean` handles PyInstaller's own cache. The result is a
+single executable in `dist/`.
 
 ### Verification
 
@@ -464,18 +480,32 @@ Examples of potential additions:
 
 ## Performance Metrics
 
-### Benchmarks (approximate, varies by system)
+### Benchmarks
 
-| Operation | Time | File Size |
-|-----------|------|-----------|
-| Master Password Generation | 100 ms | N/A |
-| Salt Generation | 10 ms | N/A |
-| Key Derivation (480k iterations) | 1.5 seconds | N/A |
-| Encrypt Small File | 500 ms | 1 MB |
-| Encrypt Medium File | 2 seconds | 50 MB |
-| Encrypt Large File | 30 seconds | 1 GB |
-| Decrypt Small File | 600 ms | 1 MB |
-| Secure Delete | 50 ms | 1 MB |
+Measured on an x86-64 Linux container. Absolute times vary a lot with CPU and
+disk; the peak-memory column does not -- it is inherent to how files are
+processed.
+
+| Operation | File Size | Time | Peak RAM |
+|-----------|-----------|------|----------|
+| Master Password Generation | N/A | < 1 ms | N/A |
+| Salt Generation | N/A | < 1 ms | N/A |
+| Key Derivation (480k iterations) | N/A | ~0.1–0.5 s | N/A |
+| Encrypt | 1 MB | ~30 ms | ~34 MB |
+| Encrypt | 10 MB | ~0.4 s | ~124 MB |
+| Encrypt | 50 MB | ~3 s | ~461 MB |
+| Decrypt | 1 MB | ~30 ms | comparable |
+| Decrypt | 50 MB | ~1.4 s | comparable |
+| Secure Delete (3 passes + zero, fsync'd) | 1 MB | ~15 ms | ~4 MB |
+
+**Files are not streamed.** Each one is held in memory whole, together with the
+payload built around it and Fernet's base64 ciphertext, so peak memory runs at
+roughly **9x the file size**. That scales linearly: a 1 GB file needs several GB
+free and fails with a `MemoryError` on most machines. CipherBox warns before it
+starts on anything above 256 MB (`CryptoManager.LARGE_FILE_THRESHOLD`).
+
+Note that timings degrade faster than linearly once memory pressure sets in --
+50 MB takes roughly 8x as long as 10 MB, not 5x.
 
 ---
 

@@ -29,6 +29,9 @@ class CipherBoxApp(ctk.CTk):
         self.config = ConfigManager()
         self.encryption_key = None
         self.master_password = None
+        # Set when unlocking a config that predates key verification; cleared
+        # once a successful decryption proves the key and a token is stored.
+        self.pending_verifier_upgrade = False
         
         # Set appearance
         ctk.set_appearance_mode("dark")
@@ -201,6 +204,10 @@ class CipherBoxApp(ctk.CTk):
         # Derive encryption key
         self.encryption_key = self.crypto.derive_key(self.master_password, salt)
         
+        # Store a token this key can decrypt, so a wrong password is caught at
+        # the login screen rather than on the user's first real file.
+        self.config.save_verifier(self.crypto.make_verifier(self.encryption_key))
+        
         # Show main interface
         self.show_main_interface()
         messagebox.showinfo(
@@ -280,8 +287,27 @@ class CipherBoxApp(ctk.CTk):
                 self.show_first_launch_wizard()
                 return
             
+            status_label.configure(text="Checking password...", text_color="#999999")
+            status_label.update_idletasks()
+            
+            key = self.crypto.derive_key(password, salt)
+            
+            verifier = self.config.load_verifier()
+            if verifier is not None and not self.crypto.check_verifier(key, verifier):
+                status_label.configure(
+                    text="Wrong master password.", text_color="#FF6B6B"
+                )
+                password_entry.delete(0, "end")
+                return
+            
             self.master_password = password
-            self.encryption_key = self.crypto.derive_key(password, salt)
+            self.encryption_key = key
+            
+            if verifier is None:
+                # A config written before verification existed. The password
+                # cannot be checked here, so it is only proven correct once a
+                # file decrypts -- store a token then, not now.
+                self.pending_verifier_upgrade = True
             
             # Show main interface
             self.show_main_interface()
@@ -437,6 +463,9 @@ class CipherBoxApp(ctk.CTk):
                 messagebox.showwarning("No Files", "Please select files to encrypt.")
                 return
             
+            if not self.confirm_large_files(self.encrypt_files, "encrypt"):
+                return
+            
             encrypt_btn.configure(state="disabled", text="Encrypting...")
             threading.Thread(
                 target=self.perform_encryption,
@@ -468,6 +497,44 @@ class CipherBoxApp(ctk.CTk):
             self.encrypt_file_list.insert("end", f"{i}. {path_obj.name} ({size_mb:.2f} MB)\n")
         
         self.encrypt_file_list.configure(state="disabled")
+    
+    def confirm_large_files(self, file_paths, action: str) -> bool:
+        """
+        Warn before processing files large enough to exhaust memory.
+        
+        Files are held in memory whole rather than streamed, so a large file
+        needs several times its own size in RAM. Better to say so up front than
+        to die with a MemoryError partway through.
+        
+        Args:
+            file_paths: The files about to be processed
+            action: "encrypt" or "decrypt", for the message
+        
+        Returns:
+            True to go ahead, False if the user cancelled
+        """
+        large = self.crypto.find_large_files(file_paths)
+        if not large:
+            return True
+        
+        def mb(value):
+            return f"{value / 1024 / 1024:,.0f} MB"
+        
+        listed = "\n".join(
+            f"  • {Path(path).name} — {mb(size)}, needs about {mb(needed)} of RAM"
+            for path, size, needed in large[:5]
+        )
+        if len(large) > 5:
+            listed += f"\n  • ...and {len(large) - 5} more"
+        
+        return messagebox.askokcancel(
+            "Large File Warning",
+            f"CipherBox loads each file into memory to {action} it, so a large "
+            f"file needs several times its size in free RAM:\n\n{listed}\n\n"
+            "If your machine runs out of memory the operation fails and the "
+            "file is left untouched. Continue?",
+            icon="warning"
+        )
     
     def perform_encryption(self):
         """Perform file encryption in a separate thread."""
@@ -587,6 +654,9 @@ class CipherBoxApp(ctk.CTk):
                 messagebox.showwarning("No Files", "Please select files to decrypt.")
                 return
             
+            if not self.confirm_large_files(self.decrypt_files, "decrypt"):
+                return
+            
             decrypt_btn.configure(state="disabled", text="Decrypting...")
             threading.Thread(
                 target=self.perform_decryption,
@@ -654,6 +724,12 @@ class CipherBoxApp(ctk.CTk):
             state="normal",
             text="🔓 Decrypt Files"
         )
+        
+        # A file that decrypted is proof this key is the right one, so an older
+        # config can be upgraded to check the password at login from now on.
+        if success_count > 0 and self.pending_verifier_upgrade:
+            if self.config.save_verifier(self.crypto.make_verifier(self.encryption_key)):
+                self.pending_verifier_upgrade = False
         
         message = f"✓ Decrypted: {success_count} file(s)"
         if error_count > 0:

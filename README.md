@@ -1,5 +1,9 @@
 # CipherBox - Secure File Encryption Application
 
+> **Start here.** Installation, usage, file format, troubleshooting and security notes.
+> For a step-by-step walkthrough see [QUICKSTART.md](QUICKSTART.md); for architecture
+> and development details see [GUIDE.md](GUIDE.md).
+
 ## Overview
 
 **CipherBox** is a modern, secure desktop application for encrypting and decrypting local files. Built with a sleek GUI and enterprise-grade cryptography, it ensures your sensitive files remain protected.
@@ -9,7 +13,8 @@
 - **PBKDF2-HMAC-SHA256 Key Derivation**: 480,000 iterations (OWASP 2024 recommendation)
 - **Fernet Encryption**: Symmetric AES encryption with authentication
 - **Master Password Protection**: One secure password to encrypt/decrypt all files
-- **Secure File Deletion**: Multi-pass overwriting before file removal
+- **Secure File Deletion**: Multi-pass overwriting, flushed to disk, before file removal
+  (effective on magnetic disks; see the note under Security Considerations for SSDs)
 - **Optional Filename Encryption**: Hide original filenames using random UUIDs
 - **No Plain Text Storage**: Password is never stored; only cryptographically-derived keys
 
@@ -108,7 +113,8 @@ python main.py
 **What happens:**
 - Files are encrypted with your Master Password
 - If filenames are encrypted, original names are stored securely inside
-- Original files are overwritten 3 times before deletion for security
+- Original files are overwritten 3 times and zero-filled before deletion, with each
+  pass flushed to the device
 - Encrypted files can be moved/copied safely
 
 ### Decrypting Files
@@ -173,7 +179,7 @@ Each `.cipherbox` file contains:
 | **Salt Length** | 32 bytes (256 bits) |
 | **Encryption Cipher** | Fernet (AES-128-CBC + HMAC-SHA256) |
 | **Key Size** | 32 bytes (256 bits) |
-| **Secure Deletion** | 3-pass overwrite + final zero fill |
+| **Secure Deletion** | 3-pass overwrite + final zero fill, each pass fsync'd |
 
 ### Code Architecture
 
@@ -250,12 +256,19 @@ directory, not in the install.
 - Securely deletes original files
 - Never stores passwords in any form
 - Uses Fernet for authenticated encryption (prevents tampering)
+- Rejects a wrong master password at login instead of failing later on your files
 
 ### ⚠️ What CipherBox Cannot Protect Against
 
 - **Malware**: If your computer is compromised, malware could intercept your password
 - **Physical Access**: Someone with physical access and admin privileges could potentially intercept memory
 - **Weak Master Passwords**: CipherBox auto-generates strong passwords, so this is not a concern
+- **Data remanence on flash storage**: Secure deletion overwrites the original file in
+  place, which works on a magnetic disk. On an SSD, USB flash drive or SD card, wear
+  levelling writes each pass to a fresh physical block and leaves the original one
+  intact and unreachable through any file API. Copy-on-write and journalling
+  filesystems (Btrfs, ZFS, APFS), snapshots and backups keep old copies too. **Full-disk
+  encryption is the dependable protection against this**, not overwriting.
 
 ### Best Practices
 
@@ -323,7 +336,7 @@ A: Not in the current version. If needed, you would need to decrypt all files wi
 A: Yes, but keep the `.cipherbox` config directory on your main system for easy access.
 
 **Q: How large can encrypted files be?**
-A: CipherBox can handle multi-GB files, limited only by available disk space and memory.
+A: Each file is loaded into memory whole rather than streamed, so peak RAM use is roughly **9x the file size** (measured across 8-96 MB inputs). A 100 MB file needs about 900 MB free; a 1 GB file needs several GB and will fail on most machines. CipherBox warns before starting on any file above 256 MB. For very large archives, split them first or use a tool that streams.
 
 **Q: Is CipherBox open-source?**
 A: The code is provided in a straightforward format. Feel free to review, modify, and improve it.

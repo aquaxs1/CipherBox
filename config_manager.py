@@ -143,6 +143,39 @@ class ConfigManager:
             print(f"Error loading salt: {e}")
             return None
     
+    def save_verifier(self, verifier: str) -> bool:
+        """
+        Save the key verification token.
+        
+        Args:
+            verifier: The token from CryptoManager.make_verifier()
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        if not isinstance(verifier, str) or not verifier:
+            print("Error saving verifier: refusing to store an empty token")
+            return False
+        
+        try:
+            config = self._load_config()
+            config['verifier'] = verifier
+            self._write_config(config)
+            return True
+        except Exception as e:
+            print(f"Error saving verifier: {e}")
+            return False
+    
+    def load_verifier(self) -> str | None:
+        """
+        Load the key verification token.
+        
+        Returns:
+            The token, or None if this config predates verification or has none
+        """
+        verifier = self._load_config().get('verifier')
+        return verifier if isinstance(verifier, str) and verifier else None
+    
     def clear_stale_config(self) -> bool:
         """
         Remove a config file that holds no usable salt.

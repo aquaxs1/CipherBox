@@ -119,7 +119,9 @@ python main.py</code></pre>
       </div>
       <div class="card">
         <h3>Secure deletion</h3>
-        <p>Originals are overwritten three times and zero-filled before they are removed.</p>
+        <p>Originals are overwritten three times, zero-filled and flushed to disk before removal.
+          Effective on a spinning disk; on an SSD, wear levelling puts the old blocks out of reach —
+          use full-disk encryption there.</p>
       </div>
       <div class="card">
         <h3>No stored password</h3>
@@ -127,7 +129,9 @@ python main.py</code></pre>
       </div>
       <div class="card">
         <h3>Batch processing</h3>
-        <p>Many files at once, a modern GUI, and support for multi-GB files.</p>
+        <p>Many files at once through a modern GUI. Each file is held in memory
+          while it is processed, so allow roughly 9× its size in free RAM —
+          CipherBox warns before it starts on anything above 256&nbsp;MB.</p>
       </div>
     </div>
   </section>
@@ -141,7 +145,7 @@ python main.py</code></pre>
       <a href="#usage">Usage</a>
       <a href="#features">Features</a>
       <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
-      <a href="https://github.com/aquaxs1/CipherBox/blob/main/LISENCE">License (MIT)</a>
+      <a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE">License (MIT)</a>
       <a href="terms.html">Terms &amp; Privacy</a>
     </div>
     <p class="fineprint">

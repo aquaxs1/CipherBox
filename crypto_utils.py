@@ -22,9 +22,30 @@ class CryptoManager:
     PBKDF2_SALT_LENGTH = 32  # 32 bytes = 256 bits
     FERNET_KEY_LENGTH = 32  # Fernet requires 32-byte key
     
+    # Overwrite buffer for secure deletion, so wiping a large file does not
+    # allocate a buffer the size of the file.
+    SECURE_DELETE_CHUNK_SIZE = 4 * 1024 * 1024
+    
+    # Encryption holds the whole file in memory: the original bytes, the
+    # payload built around them, and Fernet's base64-encoded ciphertext, plus
+    # the copies the cipher makes internally. Measured at roughly 9x the file
+    # size across 8 MB to 96 MB inputs. A file is not streamed, so this scales
+    # linearly -- a 1 GB file needs several GB of free RAM.
+    MEMORY_OVERHEAD_FACTOR = 9
+    
+    # Above this, warn before starting rather than letting the process die with
+    # a MemoryError halfway through.
+    LARGE_FILE_THRESHOLD = 256 * 1024 * 1024
+    
     # Metadata constants
     METADATA_VERSION = 1
     METADATA_ENCODING = 'utf-8'
+    
+    # Known plaintext encrypted with the derived key at setup and stored in the
+    # config. Decrypting it proves the entered password produced the same key,
+    # which is what lets us reject a wrong password at the login screen instead
+    # of letting the user in and failing on their first real file.
+    VERIFIER_PLAINTEXT = b'cipherbox-key-verification-v1'
     
     def __init__(self):
         """Initialize the CryptoManager."""
@@ -79,6 +100,80 @@ class CryptoManager:
         
         # Fernet requires base64-encoded key
         return base64.urlsafe_b64encode(derived_key)
+    
+    @staticmethod
+    def estimate_memory_required(file_size: int) -> int:
+        """
+        Estimate the peak memory needed to encrypt or decrypt a file.
+        
+        Args:
+            file_size: Size of the file in bytes
+        
+        Returns:
+            Estimated peak memory use in bytes
+        """
+        return file_size * CryptoManager.MEMORY_OVERHEAD_FACTOR
+    
+    @staticmethod
+    def find_large_files(file_paths, threshold: int = LARGE_FILE_THRESHOLD) -> list:
+        """
+        Find files big enough that processing them may exhaust memory.
+        
+        Args:
+            file_paths: Paths to check
+            threshold: Size in bytes above which a file counts as large
+        
+        Returns:
+            List of (path, size, estimated_memory) tuples, largest first
+        """
+        large = []
+        for file_path in file_paths:
+            try:
+                size = Path(file_path).stat().st_size
+            except OSError:
+                continue
+            if size > threshold:
+                large.append(
+                    (file_path, size, CryptoManager.estimate_memory_required(size))
+                )
+        
+        large.sort(key=lambda item: item[1], reverse=True)
+        return large
+    
+    @staticmethod
+    def make_verifier(key: bytes) -> str:
+        """
+        Build a verification token for a derived key.
+        
+        Args:
+            key: The encryption key (from derive_key)
+        
+        Returns:
+            The token as a string, ready to store in the config
+        """
+        token = Fernet(key).encrypt(CryptoManager.VERIFIER_PLAINTEXT)
+        return token.decode('ascii')
+    
+    @staticmethod
+    def check_verifier(key: bytes, verifier: str) -> bool:
+        """
+        Check a derived key against a stored verification token.
+        
+        Fernet authenticates with HMAC, so a key that did not create the token
+        fails to decrypt it rather than returning wrong bytes.
+        
+        Args:
+            key: The encryption key to test
+            verifier: The stored token
+        
+        Returns:
+            True if the key matches the token, False otherwise
+        """
+        try:
+            plaintext = Fernet(key).decrypt(verifier.encode('ascii'))
+        except Exception:
+            return False
+        return plaintext == CryptoManager.VERIFIER_PLAINTEXT
     
     @staticmethod
     def encrypt_file(file_path: str, key: bytes, encrypt_filename: bool = False) -> tuple[bool, str]:
@@ -230,23 +325,47 @@ class CryptoManager:
     @staticmethod
     def _secure_delete(file_path: Path, passes: int = 3) -> None:
         """
-        Securely delete a file by overwriting it multiple times before deletion.
+        Overwrite a file's contents before deleting it.
+        
+        Each pass is flushed and fsync'd. Without that the OS is free to cache
+        the writes and collapse them, so the overwrites need never reach the
+        device and the original bytes survive.
+        
+        This helps on a traditional spinning disk. It does NOT reliably destroy
+        data on an SSD, a USB flash drive or an SD card: wear levelling writes
+        each pass to a fresh physical block and leaves the old ones intact, out
+        of reach of any file API. Copy-on-write and journalling filesystems
+        (Btrfs, ZFS, APFS) and any snapshot or backup keep old copies too. Full
+        disk encryption is the dependable answer there.
         
         Args:
             file_path: Path to the file to delete
-            passes: Number of overwrite passes (3 for reasonable security)
+            passes: Number of random overwrite passes before the zero pass
         """
         try:
             file_size = file_path.stat().st_size
             
-            # Overwrite with random data multiple times
+            # Overwrite in chunks so a large file does not need a buffer of its
+            # own size in memory.
+            chunk_size = CryptoManager.SECURE_DELETE_CHUNK_SIZE
+            
+            def overwrite(fill):
+                with open(file_path, 'r+b') as f:
+                    remaining = file_size
+                    while remaining > 0:
+                        block = min(chunk_size, remaining)
+                        f.write(fill(block))
+                        remaining -= block
+                    f.flush()
+                    # Push the pass out of the OS cache to the device; without
+                    # this the overwrite may never actually happen.
+                    os.fsync(f.fileno())
+            
             for _ in range(passes):
-                with open(file_path, 'wb') as f:
-                    f.write(os.urandom(file_size))
+                overwrite(os.urandom)
             
             # Final overwrite with zeros
-            with open(file_path, 'wb') as f:
-                f.write(b'\x00' * file_size)
+            overwrite(lambda n: b'\x00' * n)
             
             # Delete the file
             file_path.unlink()
