@@ -1,5 +1,9 @@
 # CipherBox - Secure File Encryption Application
 
+> **Start here.** Installation, usage, file format, troubleshooting and security notes.
+> For a step-by-step walkthrough see [QUICKSTART.md](QUICKSTART.md); for architecture
+> and development details see [GUIDE.md](GUIDE.md).
+
 ## Overview
 
 **CipherBox** is a modern, secure desktop application for encrypting and decrypting local files. Built with a sleek GUI and enterprise-grade cryptography, it ensures your sensitive files remain protected.
@@ -9,7 +13,8 @@
 - **PBKDF2-HMAC-SHA256 Key Derivation**: 480,000 iterations (OWASP 2024 recommendation)
 - **Fernet Encryption**: Symmetric AES encryption with authentication
 - **Master Password Protection**: One secure password to encrypt/decrypt all files
-- **Secure File Deletion**: Multi-pass overwriting before file removal
+- **Secure File Deletion**: Multi-pass overwriting, flushed to disk, before file removal
+  (effective on magnetic disks; see the note under Security Considerations for SSDs)
 - **Optional Filename Encryption**: Hide original filenames using random UUIDs
 - **No Plain Text Storage**: Password is never stored; only cryptographically-derived keys
 
@@ -17,31 +22,48 @@
 
 ## Installation
 
-### Requirements
+### Windows: download the executable (recommended)
 
-- **Python 3.10 or higher**
-- **Windows, macOS, or Linux**
+Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
+and double-click it. The whole app is in that one file — no Python, no installer,
+nothing to unzip.
 
-### Step 1: Install Python
+The build is not code-signed, so SmartScreen warns on first launch. Choose
+**More info → Run anyway**.
 
-Download Python from [python.org](https://www.python.org/downloads/) (3.10+)
+All builds and their SHA-256 checksums are on the
+[releases page](https://github.com/aquaxs1/CipherBox/releases/latest). To verify a
+download:
 
-Verify installation:
-```bash
-python --version
+```powershell
+certutil -hashfile CipherBox.exe SHA256
 ```
 
-### Step 2: Install Dependencies
+### Run from source (any platform)
 
-Navigate to the CipherBox directory and install required packages:
+Requires **Python 3.10+** on Windows, macOS or Linux:
 
 ```bash
+git clone https://github.com/aquaxs1/CipherBox.git
+cd CipherBox
 pip install -r requirements.txt
+python main.py
 ```
 
 This installs:
 - **customtkinter** (v5.2.0): Modern GUI framework
 - **cryptography** (v41.0.7): Strong cryptographic primitives
+
+### Build the executable yourself
+
+```bash
+pip install pyinstaller
+pyinstaller packaging/cipherbox.spec --noconfirm --clean
+```
+
+`--clean` discards PyInstaller's cache, and the spec keeps test files out of the
+bundle. The binary lands in `dist/`. Delete `build/` and `dist/` before a release
+build so nothing from an earlier build survives into it.
 
 ---
 
@@ -73,6 +95,8 @@ When you launch CipherBox for the first time:
 
 ### Launching the Application
 
+Double-click `CipherBox.exe`, or from source:
+
 ```bash
 python main.py
 ```
@@ -89,7 +113,8 @@ python main.py
 **What happens:**
 - Files are encrypted with your Master Password
 - If filenames are encrypted, original names are stored securely inside
-- Original files are overwritten 3 times before deletion for security
+- Original files are overwritten 3 times and zero-filled before deletion, with each
+  pass flushed to the device
 - Encrypted files can be moved/copied safely
 
 ### Decrypting Files
@@ -135,6 +160,11 @@ Each `.cipherbox` file contains:
 - **Location**: `~/.cipherbox/config.json` (user's home directory)
 - **Contents**: Salt for key derivation (never the password)
 - **Permissions**: `0o600` (read/write by owner only)
+- **Writes**: atomic — an interrupted write leaves the previous config intact
+  rather than a half-written one
+- **Validation**: a config carrying no usable salt is treated as no install at
+  all and cleared, so residue from an old test run or build cannot lock you out
+  of a fresh install
 
 ---
 
@@ -149,7 +179,7 @@ Each `.cipherbox` file contains:
 | **Salt Length** | 32 bytes (256 bits) |
 | **Encryption Cipher** | Fernet (AES-128-CBC + HMAC-SHA256) |
 | **Key Size** | 32 bytes (256 bits) |
-| **Secure Deletion** | 3-pass overwrite + final zero fill |
+| **Secure Deletion** | 3-pass overwrite + final zero fill, each pass fsync'd |
 
 ### Code Architecture
 
@@ -158,6 +188,9 @@ CipherBox/
 ├── main.py              # GUI application & orchestration
 ├── crypto_utils.py      # Encryption/decryption logic
 ├── config_manager.py    # Configuration & salt management
+├── test_cipherbox.py    # Test suite
+├── packaging/           # PyInstaller build spec
+├── site/                # Documentation website
 ├── requirements.txt     # Python dependencies
 └── README.md           # This file
 ```
@@ -194,6 +227,18 @@ CipherBox/
 pip install --upgrade -r requirements.txt
 ```
 
+### "Configuration Reset" on startup
+
+**Problem**: `~/.cipherbox/config.json` exists but holds no usable salt — residue
+from an interrupted setup, an old test run or a previous build.
+
+**Solution**: Nothing to do. CipherBox detects this, removes the unusable file and
+runs first-time setup again with a new master password. A config holding a real
+salt is never removed automatically.
+
+Note that reinstalling does **not** clear this state: the config lives in your home
+directory, not in the install.
+
 ### Forgot Master Password
 
 **Problem**: Cannot decrypt files
@@ -211,12 +256,19 @@ pip install --upgrade -r requirements.txt
 - Securely deletes original files
 - Never stores passwords in any form
 - Uses Fernet for authenticated encryption (prevents tampering)
+- Rejects a wrong master password at login instead of failing later on your files
 
 ### ⚠️ What CipherBox Cannot Protect Against
 
 - **Malware**: If your computer is compromised, malware could intercept your password
 - **Physical Access**: Someone with physical access and admin privileges could potentially intercept memory
 - **Weak Master Passwords**: CipherBox auto-generates strong passwords, so this is not a concern
+- **Data remanence on flash storage**: Secure deletion overwrites the original file in
+  place, which works on a magnetic disk. On an SSD, USB flash drive or SD card, wear
+  levelling writes each pass to a fresh physical block and leaves the original one
+  intact and unreachable through any file API. Copy-on-write and journalling
+  filesystems (Btrfs, ZFS, APFS), snapshots and backups keep old copies too. **Full-disk
+  encryption is the dependable protection against this**, not overwriting.
 
 ### Best Practices
 
@@ -284,7 +336,7 @@ A: Not in the current version. If needed, you would need to decrypt all files wi
 A: Yes, but keep the `.cipherbox` config directory on your main system for easy access.
 
 **Q: How large can encrypted files be?**
-A: CipherBox can handle multi-GB files, limited only by available disk space and memory.
+A: Each file is loaded into memory whole rather than streamed, so peak RAM use is roughly **9x the file size** (measured across 8-96 MB inputs). A 100 MB file needs about 900 MB free; a 1 GB file needs several GB and will fail on most machines. CipherBox warns before starting on any file above 256 MB. For very large archives, split them first or use a tool that streams.
 
 **Q: Is CipherBox open-source?**
 A: The code is provided in a straightforward format. Feel free to review, modify, and improve it.

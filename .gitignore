@@ -1,0 +1,39 @@
+# PyInstaller build output -- never commit, and never let an old build leak
+# into a new one.
+build/
+dist/
+*.manifest
+# PyInstaller writes a generated *.spec next to the entry point; the checked-in
+# build spec lives in packaging/ and must survive.
+*.spec
+!packaging/cipherbox.spec
+
+# Release artefacts
+cipherbox-*.zip
+cipherbox-*.tar.gz
+*.sha256
+SHA256SUMS.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# CipherBox runtime and test residue
+.cipherbox/
+*.cipherbox
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,62 +1,44 @@
 # CipherBox Quick Start Guide
 
-## 🚀 Installation (5 minutes)
+> **For users.** Get running and encrypt your first file, step by step.
+> Reference documentation lives in [README.md](README.md); architecture and
+> development notes in [GUIDE.md](GUIDE.md).
 
-### Option 1: Windows (Recommended)
+## 🚀 Installation (2 minutes)
 
-1. **Install Python 3.10+**
-   - Download from [python.org](https://www.python.org/downloads/)
-   - **IMPORTANT**: Check ☑️ "Add Python to PATH" during installation
-   - Verify: Open Command Prompt and type `python --version`
+### Option 1: Windows — download the app (Recommended)
 
-2. **Run the installer**
-   - Navigate to the CipherBox directory
-   - Double-click `install.bat`
-   - Wait for tests to complete
+1. Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
+2. Double-click it
 
-3. **Launch CipherBox**
-   ```
-   python main.py
-   ```
+That is the whole installation. No Python, no dependencies, no unpacking.
 
-### Option 2: macOS/Linux
+On first launch Windows SmartScreen shows a blue warning, because the build is
+not code-signed. Choose **More info → Run anyway**.
 
-1. **Install Python 3.10+**
-   ```bash
-   # macOS (with Homebrew)
-   brew install python3
-   
-   # Ubuntu/Debian
-   sudo apt-get install python3 python3-pip
-   ```
+To check the download against the published hash first:
+```powershell
+certutil -hashfile CipherBox.exe SHA256
+```
+Compare the result with `SHA256SUMS.txt` on the
+[releases page](https://github.com/aquaxs1/CipherBox/releases/latest).
 
-2. **Run the installer**
-   ```bash
-   chmod +x install.sh
-   ./install.sh
-   ```
+### Option 2: Run from source (any platform)
 
-3. **Launch CipherBox**
-   ```bash
-   python3 main.py
-   ```
+Needs **Python 3.10+**. On macOS/Linux this is currently the way to run
+CipherBox unless a release ships a binary for your platform.
 
-### Option 3: Manual Installation
+```bash
+git clone https://github.com/aquaxs1/CipherBox.git
+cd CipherBox
+pip install -r requirements.txt
+python main.py
+```
 
-1. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Run tests**
-   ```bash
-   python test_cipherbox.py
-   ```
-
-3. **Launch**
-   ```bash
-   python main.py
-   ```
+To confirm everything works before you trust it with real files:
+```bash
+python test_cipherbox.py
+```
 
 ---
 
@@ -335,14 +317,22 @@ You can encrypt an encrypted file again:
 ## 📊 Performance Expectations
 
 ### Key Derivation
-- **Time**: 1-2 seconds (first launch and each decrypt)
-- **Why**: PBKDF2 with 480,000 iterations (security trade-off)
+- **Time**: roughly 0.1–0.5 seconds on a modern CPU, once per unlock
+- **Why**: PBKDF2 with 480,000 iterations (deliberately slow, to make guessing
+  your master password expensive)
 
 ### Encryption
-- **Small files** (< 100 MB): < 1 second
-- **Medium files** (100-500 MB): 1-3 seconds
-- **Large files** (> 1 GB): Proportional to size
-- **Factor**: File size, system speed, disk I/O
+- **1 MB**: well under a second
+- **10 MB**: under half a second
+- **50 MB**: a few seconds
+- **Above 256 MB**: CipherBox warns first — see the memory note below
+- **Factors**: file size, CPU speed, disk I/O
+
+### Memory use — the real limit
+Files are loaded into memory whole rather than streamed, so encrypting or
+decrypting needs roughly **9x the file size** in free RAM. A 100 MB file wants
+about 900 MB free; a 1 GB file needs several GB and will fail on most machines.
+Split very large archives before encrypting them.
 
 ### Decryption
 - Similar speed to encryption
@@ -365,7 +355,10 @@ You can encrypt an encrypted file again:
 ### Why Secure Deletion?
 - Simply deleting a file only removes the directory entry
 - The actual data remains on disk
-- **3-pass overwriting** + **zero fill** makes recovery very difficult
+- **3-pass overwriting** + **zero fill**, each pass flushed to the device, makes
+  recovery very difficult on a magnetic disk. On an SSD, USB stick or SD card, wear
+  levelling writes each pass to a fresh block and the original data survives out of
+  reach — full-disk encryption is the dependable answer there.
 
 ---
 
