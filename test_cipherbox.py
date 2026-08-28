@@ -509,6 +509,208 @@ def test_large_file():
     print("✓ PASSED")
 
 
+def test_tampered_ciphertext():
+    """Test that a modified encrypted file is rejected and not destroyed."""
+    print_section("Tampered Ciphertext Detection")
+
+    crypto = CryptoManager()
+    salt = crypto.generate_salt()
+    key = crypto.derive_key("TamperTestPassword", salt, iterations=1000)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        test_file = tmpdir / "contract.txt"
+        test_file.write_bytes(b"Transfer 100 EUR to account A")
+
+        success, _ = crypto.encrypt_file(str(test_file), key)
+        assert success, "Encryption should succeed"
+        encrypted_file = list(tmpdir.glob("*.cipherbox"))[0]
+
+        # Fernet authenticates its ciphertext, so a single altered byte has to
+        # be caught rather than silently decrypting to different plaintext.
+        blob = bytearray(encrypted_file.read_bytes())
+        middle = len(blob) // 2
+        blob[middle] ^= 0x01
+        encrypted_file.write_bytes(bytes(blob))
+
+        success, msg, output_path = crypto.decrypt_file(str(encrypted_file), key)
+        print(f"✓ Flipped one bit -> rejected: {msg}")
+        assert not success, "A tampered file must not decrypt"
+        assert output_path is None, "No output file should be reported"
+
+        # A rejected file must survive: _secure_delete runs only on success, and
+        # wiping the input here would destroy data the user can still recover
+        # with the right password.
+        assert encrypted_file.exists(), "Rejected file must not be deleted"
+        print("✓ Rejected file still on disk (not securely deleted)")
+
+        # A truncated file is the other half of the same guarantee.
+        truncated = tmpdir / "truncated.cipherbox"
+        truncated.write_bytes(bytes(blob)[: len(blob) // 3])
+        success, msg, _ = crypto.decrypt_file(str(truncated), key)
+        print(f"✓ Truncated file -> rejected: {msg}")
+        assert not success, "A truncated file must not decrypt"
+
+    print("✓ PASSED")
+
+
+def test_empty_and_binary_content():
+    """Test round-trips of an empty file and of arbitrary binary content."""
+    print_section("Empty & Binary File Round-Trip")
+
+    crypto = CryptoManager()
+    salt = crypto.generate_salt()
+    key = crypto.derive_key("BinaryTestPassword", salt, iterations=1000)
+
+    # An empty file makes the payload exactly the header plus metadata, with no
+    # content after it -- the boundary case of the length-prefixed format.
+    cases = {
+        "empty.dat": b"",
+        # Every byte value, so nothing along the way assumes text or UTF-8.
+        "allbytes.bin": bytes(range(256)) * 4,
+    }
+
+    for name, content in cases.items():
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            source = tmpdir / name
+            source.write_bytes(content)
+
+            success, msg = crypto.encrypt_file(str(source), key)
+            assert success, f"Encryption of {name} failed: {msg}"
+
+            encrypted_file = list(tmpdir.glob("*.cipherbox"))[0]
+            success, msg, output_path = crypto.decrypt_file(str(encrypted_file), key)
+            assert success, f"Decryption of {name} failed: {msg}"
+
+            restored = Path(output_path).read_bytes()
+            assert restored == content, f"{name}: content changed across the round-trip"
+            assert Path(output_path).name == name, f"{name}: filename not restored"
+            print(f"✓ {name}: {len(content)} bytes restored byte-for-byte")
+
+    print("✓ PASSED")
+
+
+def test_unicode_filename():
+    """Test that a non-ASCII filename survives the metadata round-trip."""
+    print_section("Non-ASCII Filename Round-Trip")
+
+    crypto = CryptoManager()
+    salt = crypto.generate_salt()
+    key = crypto.derive_key("UnicodeTestPassword", salt, iterations=1000)
+
+    # The original name travels as JSON inside the encrypted payload, so a name
+    # outside ASCII exercises METADATA_ENCODING in both directions.
+    name = "Jahresübersicht_2024_日本語.txt"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        source = tmpdir / name
+        content = "Inhalt mit Umlauten: äöüß".encode("utf-8")
+        source.write_bytes(content)
+
+        success, msg = crypto.encrypt_file(str(source), key, encrypt_filename=True)
+        assert success, f"Encryption failed: {msg}"
+
+        encrypted_file = list(tmpdir.glob("*.cipherbox"))[0]
+        print(f"✓ Stored under an opaque name: {encrypted_file.name}")
+        assert name not in encrypted_file.name, "Filename encryption must hide the name"
+
+        success, msg, output_path = crypto.decrypt_file(str(encrypted_file), key)
+        assert success, f"Decryption failed: {msg}"
+        assert Path(output_path).name == name, "Non-ASCII filename not restored exactly"
+        assert Path(output_path).read_bytes() == content, "Content changed"
+        print(f"✓ Restored exactly: {Path(output_path).name}")
+
+    print("✓ PASSED")
+
+
+def test_decrypt_name_collision():
+    """Test that decrypting never overwrites an existing file."""
+    print_section("Decryption Filename Collision")
+
+    crypto = CryptoManager()
+    salt = crypto.generate_salt()
+    key = crypto.derive_key("CollisionTestPassword", salt, iterations=1000)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        source = tmpdir / "notes.txt"
+        secret = b"the encrypted original"
+        source.write_bytes(secret)
+        success, _ = crypto.encrypt_file(str(source), key)
+        assert success, "Encryption should succeed"
+        encrypted_file = list(tmpdir.glob("*.cipherbox"))[0]
+
+        # A different file now sits at the name the decrypted output wants.
+        bystander = tmpdir / "notes.txt"
+        bystander_content = b"an unrelated file that must survive"
+        bystander.write_bytes(bystander_content)
+
+        success, msg, output_path = crypto.decrypt_file(str(encrypted_file), key)
+        assert success, f"Decryption failed: {msg}"
+
+        assert bystander.read_bytes() == bystander_content, "Existing file was overwritten"
+        print("✓ Pre-existing notes.txt left untouched")
+
+        assert Path(output_path).name == "notes_1.txt", (
+            f"Expected the counter suffix, got {Path(output_path).name}"
+        )
+        assert Path(output_path).read_bytes() == secret, "Decrypted content wrong"
+        print(f"✓ Output written beside it as {Path(output_path).name}")
+
+    print("✓ PASSED")
+
+
+def test_foreign_file_rejected():
+    """Test that a file CipherBox never wrote fails cleanly."""
+    print_section("Foreign File Handling")
+
+    crypto = CryptoManager()
+    salt = crypto.generate_salt()
+    key = crypto.derive_key("ForeignTestPassword", salt, iterations=1000)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        # Picking the wrong file in the dialog must produce a message, not a
+        # traceback -- and must leave that file alone.
+        for name, content in {
+            "random.cipherbox": os.urandom(512),
+            "plain.cipherbox": b"just some text a user renamed",
+            "zero.cipherbox": b"",
+        }.items():
+            target = tmpdir / name
+            target.write_bytes(content)
+
+            success, msg, output_path = crypto.decrypt_file(str(target), key)
+            assert not success, f"{name} should not decrypt"
+            assert output_path is None, f"{name}: no output should be reported"
+            assert target.exists(), f"{name}: an unreadable file must not be deleted"
+            print(f"✓ {name}: {msg}")
+
+        # A path that does not exist at all.
+        success, msg, _ = crypto.decrypt_file(str(tmpdir / "missing.cipherbox"), key)
+        assert not success, "A missing file should not decrypt"
+        print(f"✓ missing.cipherbox: {msg}")
+
+        # And the same on the encryption side.
+        success, msg = crypto.encrypt_file(str(tmpdir / "missing.txt"), key)
+        assert not success, "A missing file should not encrypt"
+        print(f"✓ encrypt(missing.txt): {msg}")
+
+        # A directory is not a file.
+        subdir = tmpdir / "a_folder"
+        subdir.mkdir()
+        success, msg = crypto.encrypt_file(str(subdir), key)
+        assert not success, "A directory should not encrypt"
+        print(f"✓ encrypt(a_folder/): {msg}")
+
+    print("✓ PASSED")
+
+
 def main():
     """Run all tests."""
     print("\n")
@@ -532,6 +734,11 @@ def main():
         test_wrong_password()
         test_large_file_detection()
         test_large_file()
+        test_tampered_ciphertext()
+        test_empty_and_binary_content()
+        test_unicode_filename()
+        test_decrypt_name_collision()
+        test_foreign_file_rejected()
         
         print_banner("ALL TESTS PASSED ✓")
         print("\n✓ CipherBox is functioning correctly!")
