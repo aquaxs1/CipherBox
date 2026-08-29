@@ -8,17 +8,20 @@
 
 ### Option 1: Windows — download the app (Recommended)
 
-1. Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
-2. Double-click it
+1. Download **[cipherbox-windows-x64.zip](https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-windows-x64.zip)**
+2. Unzip it and double-click `cipherbox.exe`
 
-That is the whole installation. No Python, no dependencies, no unpacking.
+That is the whole installation. No Python, no dependencies.
+
+The binary ships inside an archive because browsers and antivirus engines flag a
+freshly downloaded, unsigned `.exe` far more readily than the same file in a zip.
 
 On first launch Windows SmartScreen shows a blue warning, because the build is
 not code-signed. Choose **More info → Run anyway**.
 
 To check the download against the published hash first:
 ```powershell
-certutil -hashfile CipherBox.exe SHA256
+certutil -hashfile cipherbox-windows-x64.zip SHA256
 ```
 Compare the result with `SHA256SUMS.txt` on the
 [releases page](https://github.com/aquaxs1/CipherBox/releases/latest).

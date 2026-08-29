@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f4f6fb">
+<title>Setup — CipherBox</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Setup — CipherBox">
+<meta property="og:description" content="How to set up CipherBox: first launch, your master password, encrypting and decrypting files.">
+<meta name="description" content="How to set up CipherBox: first launch, your master password, encrypting and decrypting files.">
+<link rel="icon" href="Cipherbox-logo.jpg">
+<link rel="apple-touch-icon" href="Cipherbox-logo.jpg">
+<link rel="stylesheet" href="style.css">
+<meta property="og:image" content="https://cipher-box-file-encrypter.vercel.app/assets/og-image.png">
+<meta property="og:url" content="https://cipher-box-file-encrypter.vercel.app/setup.html">
+<link rel="canonical" href="https://cipher-box-file-encrypter.vercel.app/setup.html">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><img src="Cipherbox-logo.jpg" alt="CipherBox logo"></span>
+      <span>Cipher<span class="brand-accent">box</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="download.html">Download</a>
+      <a href="setup.html" aria-current="page">Setup</a>
+      <a href="index.html#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section id="usage">
+    <h2>Setup</h2>
+    <p>Unzip the download and double-click <code>cipherbox.exe</code>. From source it is <code>python main.py</code>.</p>
+    <ol class="steps">
+      <li><strong>First launch:</strong> CipherBox generates a 32-character master password. Store it somewhere safe — without it there is no recovery.</li>
+      <li><strong>Encrypt:</strong> Open the “Encrypt Files” tab, add your files, optionally encrypt filenames, and run it. Originals are securely overwritten and deleted, leaving <code>.cipherbox</code> files behind.</li>
+      <li><strong>Decrypt:</strong> Open the “Decrypt Files” tab, pick your <code>.cipherbox</code> files and enter the master password. Original names and contents are restored.</li>
+    </ol>
+    <p class="muted">For scripting you can import <code>crypto_utils.CryptoManager</code> and <code>config_manager.ConfigManager</code> directly.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="download.html">Download</a>
+      <a href="setup.html">Setup</a>
+      <a href="index.html#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
+      <a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE">License (MIT)</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+    <p class="fineprint">
+      <strong>No recovery:</strong> lose your master password and your encrypted files
+      are gone for good. Provided “as is”, without warranty — see the
+      <a href="terms.html">terms</a>.
+    </p>
+    <p class="fineprint">© 2026 AquaXS. All rights reserved. Released under the MIT License.</p>
+  </div>
+</footer>
+
+</body>
+</html>

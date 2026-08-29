@@ -24,9 +24,11 @@
 
 ### Windows: download the executable (recommended)
 
-Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
-and double-click it. The whole app is in that one file — no Python, no installer,
-nothing to unzip.
+Download **[cipherbox-windows-x64.zip](https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-windows-x64.zip)**, unzip it and double-click
+`cipherbox.exe`. The whole app is that one executable — no Python, no installer.
+
+It ships inside an archive on purpose: browsers and antivirus engines flag a
+freshly downloaded, unsigned `.exe` far more readily than the same binary in a zip.
 
 The build is not code-signed, so SmartScreen warns on first launch. Choose
 **More info → Run anyway**.
@@ -36,7 +38,7 @@ All builds and their SHA-256 checksums are on the
 download:
 
 ```powershell
-certutil -hashfile CipherBox.exe SHA256
+certutil -hashfile cipherbox-windows-x64.zip SHA256
 ```
 
 ### Run from source (any platform)
@@ -95,7 +97,7 @@ When you launch CipherBox for the first time:
 
 ### Launching the Application
 
-Double-click `CipherBox.exe`, or from source:
+Double-click `cipherbox.exe`, or from source:
 
 ```bash
 python main.py

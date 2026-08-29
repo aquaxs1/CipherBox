@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f4f6fb">
+<title>Download — CipherBox</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Download — CipherBox">
+<meta property="og:description" content="Download CipherBox for Windows, macOS or Linux — always the latest release, shipped as an archive.">
+<meta name="description" content="Download CipherBox for Windows, macOS or Linux — always the latest release, shipped as an archive.">
+<link rel="icon" href="Cipherbox-logo.jpg">
+<link rel="apple-touch-icon" href="Cipherbox-logo.jpg">
+<link rel="stylesheet" href="style.css">
+<meta property="og:image" content="https://cipher-box-file-encrypter.vercel.app/assets/og-image.png">
+<meta property="og:url" content="https://cipher-box-file-encrypter.vercel.app/download.html">
+<link rel="canonical" href="https://cipher-box-file-encrypter.vercel.app/download.html">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><img src="Cipherbox-logo.jpg" alt="CipherBox logo"></span>
+      <span>Cipher<span class="brand-accent">box</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="download.html" aria-current="page">Download</a>
+      <a href="setup.html">Setup</a>
+      <a href="index.html#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section id="install">
+    <h2>Download</h2>
+    <p class="lead">One archive, unzipped where you want it. Always the newest release.</p>
+
+    <div class="download">
+      <div class="download-main">
+        <p class="download-kicker">Windows</p>
+        <h3>cipherbox-windows-x64.zip</h3>
+        <p class="download-sub">The whole app in one executable, shipped inside a zip. Unzip it,
+          double-click <code>cipherbox.exe</code>, done — nothing to install, no Python.</p>
+        <a class="btn btn-lg" href="https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-windows-x64.zip">Download for Windows</a>
+        <p class="download-meta">Windows 10 &amp; 11 (64-bit) ·
+          <a href="https://github.com/aquaxs1/CipherBox/releases/latest">All downloads and checksums</a></p>
+      </div>
+      <div class="download-side">
+        <p class="download-kicker">First launch</p>
+        <p>Windows does not know this file yet, so SmartScreen shows a blue
+          warning. Choose <strong>More info → Run anyway</strong>. It appears because
+          the build is not code-signed, not because anything is wrong with it. The
+          binary ships inside a zip for the same reason — antivirus engines flag a
+          freshly downloaded bare .exe far more readily.</p>
+        <p class="download-verify">Paranoid? Check the file against the published hash first:</p>
+<pre><code>certutil -hashfile cipherbox-windows-x64.zip SHA256</code></pre>
+      </div>
+    </div>
+
+    <details class="alt-install">
+      <summary>macOS, Linux, or running from source</summary>
+      <div class="alt-install-body">
+        <p>Prebuilt macOS and Linux binaries ship with tagged releases when they are
+          available — check the
+          <a href="https://github.com/aquaxs1/CipherBox/releases/latest">latest release</a>.
+          Otherwise run it from source on any platform. Needs Python 3.10+:</p>
+<pre><code>git clone https://github.com/aquaxs1/CipherBox.git
+cd CipherBox
+pip install -r requirements.txt
+python main.py</code></pre>
+        <p class="muted">This pulls in <code>customtkinter</code> and <code>cryptography</code>,
+          and skips the unsigned-binary warning entirely.</p>
+      </div>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="download.html">Download</a>
+      <a href="setup.html">Setup</a>
+      <a href="index.html#features">Features</a>
+      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
+      <a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE">License (MIT)</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+    <p class="fineprint">
+      <strong>No recovery:</strong> lose your master password and your encrypted files
+      are gone for good. Provided “as is”, without warranty — see the
+      <a href="terms.html">terms</a>.
+    </p>
+    <p class="fineprint">© 2026 AquaXS. All rights reserved. Released under the MIT License.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -130,8 +130,8 @@ CipherBox/
 
 ### End users
 
-Download **[CipherBox.exe](https://github.com/aquaxs1/CipherBox/releases/latest/download/CipherBox.exe)**
-and run it. No Python required. See QUICKSTART.md for the details.
+Download **[cipherbox-windows-x64.zip](https://github.com/aquaxs1/CipherBox/releases/latest/download/cipherbox-windows-x64.zip)**, unzip it and run
+`cipherbox.exe`. No Python required. See QUICKSTART.md for the details.
 
 ### Development setup
 
