@@ -7,11 +7,11 @@ name: Build & release binaries
 # customtkinter GUI you get from `python main.py`, with no Python install
 # required on the target machine.
 #
-# The Windows build is additionally published under the fixed name
-# CipherBox.exe. The website links straight to
-# releases/latest/download/CipherBox.exe, so that name must stay stable across
-# releases -- renaming it breaks the download button on every page that points
-# at it.
+# Every build is published as an archive, never as a bare executable: browsers
+# and antivirus engines flag a freshly downloaded, unsigned .exe far more often
+# than the same binary inside a .zip. The website links to
+# releases/latest/download/cipherbox-windows-x64.zip, so that name must stay
+# stable across releases -- renaming it breaks the download button.
 
 on:
   push:
@@ -37,8 +37,6 @@ jobs:
             name: windows-x64
             asset_ext: zip
             binary: cipherbox.exe
-            # Stable, human-facing name the website downloads directly.
-            standalone: CipherBox.exe
           - os: macos-14
             name: macos-arm64
             asset_ext: zip
@@ -115,13 +113,6 @@ jobs:
           chmod +x "dist/${{ matrix.binary }}"
           tar -C dist -czf "cipherbox-${{ matrix.name }}.tar.gz" "${{ matrix.binary }}"
 
-      # Published alongside the archive so the website can link to a single,
-      # unchanging URL that hands the user a runnable file with no unzip step.
-      - name: Stage standalone executable
-        if: matrix.standalone != ''
-        shell: bash
-        run: cp "dist/${{ matrix.binary }}" "${{ matrix.standalone }}"
-
       - name: Checksum
         shell: bash
         run: |
@@ -132,13 +123,6 @@ jobs:
             shasum -a 256 "$FILE" > "$FILE.sha256"
           fi
 
-      - name: Checksum (standalone)
-        if: matrix.standalone != ''
-        shell: bash
-        run: |
-          FILE="${{ matrix.standalone }}"
-          certutil -hashfile "$FILE" SHA256 | sed -n '2p' | tr -d '\r' | awk -v f="$FILE" '{print $0"  "f}' > "$FILE.sha256"
-
       - uses: actions/upload-artifact@v4
         with:
           name: cipherbox-${{ matrix.name }}
@@ -147,14 +131,6 @@ jobs:
             cipherbox-${{ matrix.name }}.${{ matrix.asset_ext }}.sha256
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
-        if: matrix.standalone != ''
-        with:
-          name: cipherbox-${{ matrix.name }}-standalone
-          path: |
-            ${{ matrix.standalone }}
-            ${{ matrix.standalone }}.sha256
-          if-no-files-found: error
 
   release:
     name: Publish release
@@ -188,7 +164,6 @@ jobs:
           name: CipherBox ${{ steps.version.outputs.version }}
           generate_release_notes: true
           files: |
-            artifacts/CipherBox.exe
             artifacts/*.zip
             artifacts/*.tar.gz
             artifacts/SHA256SUMS.txt
@@ -196,8 +171,9 @@ jobs:
             Desktop builds of CipherBox ${{ steps.version.outputs.version }}.
             No Python installation required — download and run.
 
-            **Windows:** grab `CipherBox.exe` and double-click it. The `.zip`
-            archives are the same binary for anyone who prefers them.
+            **Windows:** download `cipherbox-windows-x64.zip`, unzip it and run
+            `cipherbox.exe`. Shipping the binary inside an archive keeps browsers
+            and antivirus engines from flagging the unsigned download.
 
             These binaries are **not code-signed**, so Windows SmartScreen and
             macOS Gatekeeper will warn on first launch. On Windows choose
