@@ -41,7 +41,7 @@
   <section class="legal">
     <p class="crumb"><a href="index.html">Home</a> / Terms of Use</p>
     <h1>Terms of Use</h1>
-    <p class="muted">Last updated: 29 August 2026</p>
+    <p class="muted">Last updated: 16 October 2026</p>
 
     <h2 id="scope">1. What these terms cover</h2>
     <p>
@@ -75,14 +75,59 @@
     </p>
 
     <h2 id="privacy">5. Privacy</h2>
+
+    <h3>Who is responsible</h3>
     <p>
-      CipherBox runs entirely on your machine. There is no account, no server, no
-      telemetry and no network connection at all. Your files, filenames and
-      password never leave your computer.
+      CipherBox and this site are run by Sebi. For anything about your data,
+      message <a href="https://t.me/aquaxs">@aquaxs on Telegram</a>.
+    </p>
+
+    <h3>The app</h3>
+    <p>
+      CipherBox runs entirely on your computer. There is no account, no server,
+      no update check and no telemetry, and it opens no network connection at
+      all. Your files, filenames and password never leave your machine, so
+      nothing about you reaches us.
     </p>
     <p>
-      This website is static: no cookies, no analytics, no third-party scripts or
-      fonts. Nothing about your visit is stored or shared.
+      It keeps one file of its own, <code>~/.cipherbox/config.json</code>, which
+      holds the random salt and a version number — never the password.
+      Encrypted files are written next to the originals. The salt is needed to
+      decrypt, so deleting that folder also makes your encrypted files
+      unreadable.
+    </p>
+
+    <h3>This website</h3>
+    <p>
+      This site is hosted by Vercel Inc. (USA). To deliver the pages and protect
+      them against abuse, Vercel processes connection data — IP address, time,
+      requested file and browser — on the basis of a legitimate interest
+      (Art. 6(1)(f) GDPR). Vercel is certified under the EU-US Data Privacy
+      Framework.
+    </p>
+    <p>
+      The site itself sets no cookies and stores nothing in your browser. There
+      are no analytics, no tracking, no scripts and no third-party fonts: every
+      page loads only files from this site.
+    </p>
+
+    <h3>Downloads and GitHub links</h3>
+    <p>
+      The download buttons and the GitHub links lead to github.com. Only when
+      you click one does your browser contact GitHub Inc. (USA), which then sees
+      your IP address and serves the release or the source code under its own
+      privacy statement. GitHub is also certified under the EU-US Data Privacy
+      Framework.
+    </p>
+
+    <h3>Your rights</h3>
+    <p>
+      You can ask for access to your data, correction, deletion, restriction, a
+      copy, and object to processing based on a legitimate interest
+      (Art. 15–21 GDPR) — message
+      <a href="https://t.me/aquaxs">@aquaxs on Telegram</a>. You can also complain
+      to a data protection authority; in Austria that is the Datenschutzbehörde
+      (<a href="https://www.dsb.gv.at">dsb.gv.at</a>).
     </p>
 
     <h2 id="warranty">6. No warranty</h2>
@@ -128,8 +173,10 @@
 
     <h2 id="contact">11. Contact</h2>
     <p>
-      Questions, bug reports and licence enquiries go through
-      <a href="https://github.com/aquaxs1/CipherBox/issues">GitHub issues</a>.
+      CipherBox is run by Sebi. Questions, bug reports and licence enquiries go
+      through <a href="https://github.com/aquaxs1/CipherBox/issues">GitHub issues</a>;
+      for anything about your data, message
+      <a href="https://t.me/aquaxs">@aquaxs on Telegram</a>.
     </p>
   </section>
 </main>
@@ -143,6 +190,7 @@
       <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
       <a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE">License (MIT)</a>
       <a href="terms.html">Terms of Use</a>
+      <a href="terms.html#privacy">Privacy</a>
     </div>
     <p class="fineprint">© 2026 AquaXS. All rights reserved. Released under the MIT License.</p>
   </div>
