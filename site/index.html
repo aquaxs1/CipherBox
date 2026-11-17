@@ -1,114 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#f4f6fb">
-<title>CipherBox — Secure File Encryption</title>
-<meta property="og:type" content="website">
-<meta property="og:title" content="CipherBox — Secure File Encryption">
-<meta property="og:description" content="CipherBox encrypts your local files with Fernet (AES) and PBKDF2 — one master password, no cloud, no account.">
-<meta name="description" content="CipherBox encrypts your local files with Fernet (AES) and PBKDF2 — one master password, no cloud, no account.">
-<link rel="icon" href="Cipherbox-logo.jpg">
-<link rel="apple-touch-icon" href="Cipherbox-logo.jpg">
-<link rel="stylesheet" href="style.css">
-<meta property="og:image" content="https://cipher-box-file-encrypter.vercel.app/assets/og-image.png">
-<meta property="og:url" content="https://cipher-box-file-encrypter.vercel.app/">
-<link rel="canonical" href="https://cipher-box-file-encrypter.vercel.app/">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CipherBox — Secure File Encryption</title>
+  <meta name="description" content="CipherBox encrypts your local files with Fernet (AES) and PBKDF2 — one master password, no cloud, no account.">
+  <link rel="canonical" href="https://cipher-box-file-encrypter.vercel.app/">
+  <meta name="theme-color" content="#050806">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CipherBox">
+  <meta property="og:title" content="CipherBox — Secure File Encryption">
+  <meta property="og:description" content="CipherBox encrypts your local files with Fernet (AES) and PBKDF2 — one master password, no cloud, no account.">
+  <meta property="og:url" content="https://cipher-box-file-encrypter.vercel.app/">
+  <meta property="og:image" content="https://cipher-box-file-encrypter.vercel.app/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/logo-128.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/logo-180.png">
+  <link rel="preload" href="assets/aqx/fonts/bodoni-moda-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/aqx/fonts/inter-tight-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/aqx/aqx.css">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/aqx/boot.js"></script>
+  <script type="module" src="assets/aqx/aqx.js"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "CipherBox", "description": "CipherBox encrypts your local files with Fernet (AES) and PBKDF2 — one master password, no cloud, no account.", "url": "https://cipher-box-file-encrypter.vercel.app/", "applicationCategory": "SecurityApplication", "operatingSystem": "Windows, macOS, Linux", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "AquAxs", "url": "https://aqua.is-a.dev/"}, "image": "https://cipher-box-file-encrypter.vercel.app/assets/og-image.png", "license": "https://opensource.org/licenses/MIT", "sameAs": ["https://github.com/aquaxs1/CipherBox"]}</script>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
+  <canvas class="aqx-sky" aria-hidden="true"></canvas>
+  <div class="aqx-aura" aria-hidden="true"></div>
+  <div class="aqx-progress" aria-hidden="true"></div>
 
-<header>
-  <nav class="nav">
-    <a class="brand" href="index.html">
-      <span class="brand-mark"><img src="Cipherbox-logo.jpg" alt="CipherBox logo"></span>
-      <span>Cipher<span class="brand-accent">box</span></span>
-    </a>
-    <div class="nav-links">
-      <a href="download.html">Download</a>
-      <a href="setup.html">Setup</a>
-      <a href="index.html#features">Features</a>
-      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
+  <header class="nav" data-stuck="false" data-open="false">
+    <div class="nav-inner">
+      <a class="brand" href="./" aria-label="CipherBox home"><img src="assets/logo-128.png" alt="" width="32" height="32"><span>CipherBox</span></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><span></span></button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="./#features">Features</a></li>
+        <li><a href="setup">Setup</a></li>
+        <li><a href="https://github.com/aquaxs1/CipherBox" rel="noopener">GitHub</a></li>
+        <li><a class="btn btn-primary btn-sm" href="download">Download</a></li>
+      </ul>
     </div>
-  </nav>
-</header>
+  </header>
 
-<main id="top">
-
-  <section class="hero">
-    <div class="hero-copy">
-      <h1>Your files.<br>Readable only by you.</h1>
-      <p class="lead">CipherBox is a desktop app that encrypts local files with AES (Fernet) and PBKDF2-HMAC-SHA256. One master password — no cloud, no account.</p>
-      <div class="hero-actions">
-        <a class="btn" href="download.html">Download</a>
-        <a class="btn btn-ghost" href="setup.html">Setup guide</a>
+  <main id="main">
+    <section class="hero">
+      <div class="stage" data-scene="assets/scene.js" data-mode="hero" aria-hidden="true"><canvas></canvas></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Open source · Windows, macOS, Linux</span>
+          <h1>Your files. Readable <em>only by you.</em></h1>
+          <p class="lead">CipherBox is a desktop app that encrypts local files with AES (Fernet) and PBKDF2-HMAC-SHA256. One master password — no cloud, no account.</p>
+          <p class="typed" data-typed='["AES-128-CBC + HMAC-SHA256", "PBKDF2 · 480,000 iterations", "no cloud · no account · no telemetry"]'>AES-128-CBC + HMAC-SHA256</p>
+          <div class="btn-row">
+            <a class="btn btn-primary btn-lg" href="download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download</a>
+            <a class="btn btn-lg" href="setup">Setup guide</a>
+          </div>
+          <p class="hero-note">Free · No installer · No Python required</p>
+        </div>
       </div>
-      <p class="hero-note">Free · No installer · No Python required</p>
+      <span class="hero-hint">Click the vault to lock it</span>
+    </section>
+
+    <section class="sec">
+      <div class="wrap">
+        <div class="stats reveal">
+          <div class="stat"><b data-count="480000">480,000</b><span>PBKDF2 iterations</span></div>
+          <div class="stat"><b data-count="32" data-suffix=" bytes">32 bytes</b><span>random salt</span></div>
+          <div class="stat"><b data-count="3" data-suffix="×">3×</b><span>overwrite before delete</span></div>
+          <div class="stat"><b>0</b><span>network connections</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="features">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <span class="eyebrow">Features</span>
+          <h2>What it <em>can do</em></h2>
+        </div>
+        <div class="cards" data-cols="3">
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+            <h3>Strong encryption</h3>
+            <p>Fernet (AES-128-CBC + HMAC-SHA256) with built-in authentication against tampering.</p>
+          </article>
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12 20 3M16 7l3 3M14 9l2 2"/></svg></span>
+            <h3>Solid key derivation</h3>
+            <p>PBKDF2-HMAC-SHA256 with 480,000 iterations and a 32-byte salt (OWASP 2024).</p>
+          </article>
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c5 0 8.5 3.6 10 6-.6 1-1.5 2.2-2.7 3.3M6.3 7.6C4.3 8.9 2.9 10.6 2 12c1.5 2.4 5 6 10 6 1.5 0 2.9-.3 4.1-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></span>
+            <h3>Hidden filenames</h3>
+            <p>Optionally replace filenames with random UUIDs and keep the real name inside the container.</p>
+          </article>
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></span>
+            <h3>Secure deletion</h3>
+            <p>Originals are overwritten three times, zero-filled and flushed to disk before removal. Effective on a spinning disk; on an SSD, wear levelling puts the old blocks out of reach — use full-disk encryption there.</p>
+          </article>
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v6c0 4.4 3 7.7 7 9 4-1.3 7-4.6 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <h3>No stored password</h3>
+            <p>Only the salt lands in <code>~/.cipherbox/config.json</code> (mode 0600) — never the password itself.</p>
+          </article>
+          <article class="card reveal">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5"/></svg></span>
+            <h3>Batch processing</h3>
+            <p>Many files at once through a modern GUI. Each file is held in memory while it is processed, so allow roughly 9× its size in free RAM — CipherBox warns before it starts on anything above 256 MB.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="how">
+      <div class="wrap">
+        <div class="split">
+          <div class="stack reveal">
+            <span class="eyebrow">How it works</span>
+            <h2>Three moves, <em>one password</em></h2>
+            <p class="lead">Unzip the download and double-click <code>cipherbox.exe</code>. From source it is <code>python main.py</code>.</p>
+            <a class="btn" href="setup">Read the setup guide<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <ol class="steps">
+            <li class="reveal">
+              <h3>First launch</h3>
+              <p>CipherBox generates a 32-character master password. Store it somewhere safe — without it there is no recovery.</p>
+            </li>
+            <li class="reveal">
+              <h3>Encrypt</h3>
+              <p>Add your files, optionally encrypt filenames, and run it. Originals are securely overwritten and deleted, leaving <code>.cipherbox</code> files behind.</p>
+            </li>
+            <li class="reveal">
+              <h3>Decrypt</h3>
+              <p>Pick your <code>.cipherbox</code> files and enter the master password. Original names and contents are restored.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="wrap">
+        <div class="note warn reveal">
+          <p><strong>No recovery.</strong> Lose your master password and your encrypted files are gone for good. There is no backdoor, no reset and no support request that changes this.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="wrap">
+        <div class="cta reveal">
+          <h2>Lock it <em>down</em></h2>
+          <p class="lead">One archive, unzipped where you want it. Always the newest release.</p>
+          <div class="btn-row">
+            <a class="btn btn-primary btn-lg" href="download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download</a>
+            <a class="btn btn-lg" href="https://github.com/aquaxs1/CipherBox" rel="noopener">Source on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-about">
+          <a class="brand" href="./"><img src="assets/logo-128.png" alt="" width="32" height="32" loading="lazy"><span>CipherBox</span></a>
+          <p>A desktop app that encrypts local files with one master password. No cloud, no account.</p>
+        </div>
+        <nav class="footer-col" aria-label="Product">
+          <h2>Product</h2>
+          <ul>
+            <li><a href="./#features">Features</a></li>
+            <li><a href="download">Download</a></li>
+            <li><a href="setup">Setup</a></li>
+          </ul>
+        </nav>
+        <nav class="footer-col" aria-label="Project">
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/aquaxs1/CipherBox" rel="noopener">GitHub</a></li>
+            <li><a href="https://github.com/aquaxs1/CipherBox/releases" rel="noopener">Releases</a></li>
+            <li><a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE" rel="noopener">License (MIT)</a></li>
+          </ul>
+        </nav>
+        <nav class="footer-col" aria-label="Legal">
+          <h2>Legal</h2>
+          <ul>
+            <li><a href="terms">Terms of Use</a></li>
+            <li><a href="terms#privacy">Privacy</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="family">
+        <span class="family-label">More by AquAxs</span>
+        <ul>
+          <li><a href="https://aqua.is-a.dev/portfolio" data-home rel="noopener">All projects</a></li>
+          <li><a href="https://pfpair.app/" rel="noopener">Pfpair</a></li>
+          <li><a href="https://handled-market.vercel.app/" rel="noopener">Handled</a></li>
+          <li><a href="https://larpcorddc.vercel.app/" rel="noopener">Larpcord</a></li>
+          <li><a href="https://mybluejarvis.vercel.app/" rel="noopener">My Jarvis</a></li>
+          <li><a href="https://guardiantus-av.vercel.app/" rel="noopener">Guardiantus AV</a></li>
+          <li><a href="https://explorer-manager.vercel.app/" rel="noopener">Explorer Manager</a></li>
+          <li><a href="https://easy-cloner.vercel.app/" rel="noopener">Easy Server Cloner</a></li>
+          <li><a href="https://simple-skin.vercel.app/" rel="noopener">Simple Skin</a></li>
+          <li><a href="https://autobuild-gui.vercel.app/" rel="noopener">Autobuild GUI</a></li>
+          <li><a href="https://timetrackerextension.vercel.app/" rel="noopener">WebsiteTimeTrack</a></li>
+          <li><a href="https://wave-uninstaller.vercel.app/" rel="noopener">Wave Uninstaller</a></li>
+          <li><a href="https://discord-sakurabot.vercel.app/" rel="noopener">Sakura Bot</a></li>
+          <li><a href="https://revox-client.vercel.app/" rel="noopener">Revox Client</a></li>
+          <li><a href="https://chesstrainer.cc.cd/" rel="noopener">Chess Trainer</a></li>
+        </ul>
+      </div>
+      <div class="footer-legal">
+        <p>© 2026 AquAxs. Released under the MIT License.</p>
+        <p>No recovery: lose your master password and your encrypted files are gone for good. Provided “as is”, without warranty — see the <a href="terms">terms</a>.</p>
+      </div>
     </div>
-    <div class="hero-art">
-      <img src="Cipherbox-logo.jpg" alt="CipherBox — a locked box holding documents">
-    </div>
-  </section>
-
-  <section id="features">
-    <h2>What it can do</h2>
-    <div class="cards">
-      <div class="card">
-        <h3>Strong encryption</h3>
-        <p>Fernet (AES-128-CBC + HMAC-SHA256) with built-in authentication against tampering.</p>
-      </div>
-      <div class="card">
-        <h3>Solid key derivation</h3>
-        <p>PBKDF2-HMAC-SHA256 with 480,000 iterations and a 32-byte salt (OWASP 2024).</p>
-      </div>
-      <div class="card">
-        <h3>Hidden filenames</h3>
-        <p>Optionally replace filenames with random UUIDs and keep the real name inside the container.</p>
-      </div>
-      <div class="card">
-        <h3>Secure deletion</h3>
-        <p>Originals are overwritten three times, zero-filled and flushed to disk before removal.
-          Effective on a spinning disk; on an SSD, wear levelling puts the old blocks out of reach —
-          use full-disk encryption there.</p>
-      </div>
-      <div class="card">
-        <h3>No stored password</h3>
-        <p>Only the salt lands in <code>~/.cipherbox/config.json</code> (mode 0600) — never the password itself.</p>
-      </div>
-      <div class="card">
-        <h3>Batch processing</h3>
-        <p>Many files at once through a modern GUI. Each file is held in memory
-          while it is processed, so allow roughly 9× its size in free RAM —
-          CipherBox warns before it starts on anything above 256&nbsp;MB.</p>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <div class="footer-inner">
-    <div class="footer-links">
-      <a href="download.html">Download</a>
-      <a href="setup.html">Setup</a>
-      <a href="index.html#features">Features</a>
-      <a href="https://github.com/aquaxs1/CipherBox">GitHub</a>
-      <a href="https://github.com/aquaxs1/CipherBox/blob/main/LICENSE">License (MIT)</a>
-      <a href="terms.html">Terms of Use</a>
-      <a href="terms.html#privacy">Privacy</a>
-    </div>
-    <p class="fineprint">
-      <strong>No recovery:</strong> lose your master password and your encrypted files
-      are gone for good. Provided “as is”, without warranty — see the
-      <a href="terms.html">terms</a>.
-    </p>
-    <p class="fineprint">© 2026 AquaXS. All rights reserved. Released under the MIT License.</p>
-  </div>
-</footer>
-
+  </footer>
 </body>
 </html>
